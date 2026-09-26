@@ -1,0 +1,136 @@
+# These are SITE-SPECIFIC rule profiles, not a claim that every field is available.
+# Every profile is exercised per product; missing values are recorded as unavailable.
+# CSS selectors are tried in order only inside a product page, not across sites.
+sites:
+  amoremall:
+    domains: [amoremall.com]
+    paths: [/kr/ko/product/detail]
+    engine: custom
+    name: ['h1', '[class*="productName"]', '[class*="goodsName"]']
+    price: ['[class*="salePrice"]', '[class*="finalPrice"]']
+  torriden:
+    domains: [torriden.com]
+    paths: [/goods/goods_view.php]
+    engine: godomall
+    name: ['.item_detail_tit h3', '.item_detail_tit', 'h1']
+    price: ['.item_price .price', '.item_price']
+  roundlab:
+    domains: [roundlab.co.kr]
+    paths: [/product/]
+    engine: cafe24
+  anua:
+    domains: [anua.kr]
+    paths: [/product/]
+    engine: cafe24
+  beplain:
+    domains: [beplain.co.kr]
+    paths: [/shop/, /index.html]
+    engine: makeshop
+  abib:
+    domains: [abib.com]
+    paths: [/product/]
+    engine: cafe24
+  naosmall:
+    domains: [naosmall.kr]
+    paths: [/product/]
+    engine: cafe24
+  isntree:
+    domains: [isntree.com]
+    paths: [/product/]
+    engine: cafe24
+  inyoe:
+    domains: [inyoe.co.kr]
+    paths: [/product/]
+    engine: cafe24
+  wellage:
+    domains: [wellage.co.kr]
+    paths: [/product/]
+    engine: cafe24
+  sidmool:
+    domains: [sidmool.com]
+    paths: [/shop/shopdetail.html]
+    engine: makeshop
+  ybk:
+    domains: [ybk-cosmetics.com]
+    paths: [/product/]
+    engine: cafe24
+  tonymoly:
+    domains: [tonymoly.com]
+    paths: [/products/]
+    engine: custom
+  snature:
+    domains: [snature.kr]
+    paths: [/product/]
+    engine: cafe24
+  vegreen:
+    domains: [vegreen.co.kr]
+    paths: [/product/]
+    engine: cafe24
+  blancdoux:
+    domains: [blancdoux.com]
+    paths: [/product/]
+    engine: cafe24
+  dr20project:
+    domains: [dr20project.com]
+    paths: [/product/]
+    engine: cafe24
+  manyo:
+    domains: [manyo.co.kr]
+    paths: [/goods/goods_view.php]
+    engine: godomall
+  laneige:
+    domains: [laneige.com]
+    paths: [/product/]
+    engine: custom
+  numbuzin:
+    domains: [numbuzin.com]
+    paths: [/product/]
+    engine: cafe24
+  oliveyoung:
+    domains: [oliveyoung.co.kr]
+    paths: [/store/goods/getGoodsDetail.do]
+    engine: custom
+  ecominimal:
+    domains: [ecominimal.co.kr]
+    paths: [/product/]
+    engine: cafe24
+  lavien:
+    domains: [lavien.co.kr]
+    paths: [/product/]
+    engine: cafe24
+  leaderscosmetics:
+    domains: [leaderscosmetics.com]
+    paths: [/product/]
+    engine: cafe24
+  cosrx:
+    domains: [cosrx.co.kr]
+    paths: [/shop/shopdetail.html]
+    engine: makeshop
+  reveam:
+    domains: [reveam.co.kr]
+    paths: [/product/]
+    engine: cafe24
+  nomadia:
+    domains: [nomadiaskin.kr]
+    paths: [/product/]
+    engine: cafe24
+  mediheal:
+    domains: [medihealshop.com]
+    paths: [/product/]
+    engine: cafe24
+  innisfree:
+    domains: [innisfree.com]
+    paths: [/kr/ko/dp/product/]
+    engine: custom
+  fully:
+    domains: [full-y.co.kr]
+    paths: [/product/]
+    engine: cafe24
+  lagom:
+    domains: [lagom.kr]
+    paths: [/product/]
+    engine: cafe24
+  arencia:
+    domains: [arencia.com]
+    paths: [/product/]
+    engine: cafe24
