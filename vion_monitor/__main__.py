@@ -83,8 +83,8 @@ def main():
     if not store.values('변경이력'): store.append('변경이력', [['확인 시각 UTC','제품 ID','제품명','변경 항목','변경 내용','공식 URL']])
     last = store.last_run()
     if last and os.environ.get('FORCE_RUN','false').lower() != 'true':
-        if datetime.now(timezone.utc) - last < timedelta(hours=72):
-            LOG.info('72시간 미경과: 이번 실행 건너뜀')
+        if datetime.now(timezone.utc) - last < timedelta(hours=1):
+            LOG.info('1시간 미경과: 이번 실행 건너뜀')
             return 0
     products = store.products(os.environ.get('PRODUCT_SHEET_NAME','제품 데이터'))
     previous = store.previous()
