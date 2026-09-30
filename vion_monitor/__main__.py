@@ -124,6 +124,7 @@ def main():
                                 note += f"\n외 {len(image_urls) - 3}개"
                         review_notes.append(note)
                     if changes:
+                        change_count += len(changes)
                         stamp = datetime.now(timezone.utc).isoformat()
                         # Durable history before notification and deduplication state.
                         # Failure retries the alert; a successful baseline can never erase the history.
@@ -134,7 +135,6 @@ def main():
                         summary = '\n'.join(f'• {FIELD_NAMES[f]}: {v[:1800]}' for f, v in changes)
                         message = f"🔎 시트와 공식 페이지 차이 | #{p['id']} {p['name']}\n{summary}\n{p['url']}"
                         send_slack(webhook, [message])
-                        change_count += len(changes)
                     store.save_snapshot(p['id'], state, previous)
                 except Exception as exc:
                     errors.append(f"{p['id']} {p['name']} ({key}): {type(exc).__name__} {str(exc)[:130]}")
@@ -143,10 +143,8 @@ def main():
             browser.close()
     for note in review_notes: LOG.warning('%s', note)
     for error in errors: LOG.error('%s', error)
-    notices = review_notes + errors
-    if notices:
-        send_slack(webhook, ['⚠️ VION 수집 검수 필요\n' + '\n'.join(notices[:25])] +
-                   (['추가 항목 ' + str(len(notices)-25) + '건: 실행 로그 확인'] if len(notices)>25 else []))
+    if change_count == 0:
+        send_slack(webhook, ['✅ 수정 사항 없음'])
     store.mark_run()
     LOG.info('Done: %s products, %s with URL, %s changes, %s review notes, %s errors',
              len(products), covered, change_count, len(review_notes), len(errors))
