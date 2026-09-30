@@ -4,6 +4,8 @@ on:
   schedule:
     # Testing cadence: every ten minutes, offset from GitHub's busiest minute marks.
     - cron: '3,13,23,33,43,53 * * * *'
+  repository_dispatch:
+    types: [vion-monitor-test]
 
 permissions:
   contents: read
