@@ -89,11 +89,25 @@ class CompareTests(unittest.TestCase):
 
     def test_read_sheet_price_and_ingredients_with_title_row(self):
         store=SheetStore.__new__(SheetStore)
+        store.sheet_titles=Mock(return_value=['제품 데이터'])
         store.values=Mock(return_value=[['목록'],['제품 ID','제품명','가격(원)','브랜드명','용량','전성분','공식 상품 상세'],
                                       ['1','토너','15,300','브랜드','500','정제수, 판테놀',self.product['url']]])
         product=store.products('제품 데이터')[0]
         self.assertEqual(product['price'], '15,300')
         self.assertEqual(product['ingredients'], '정제수, 판테놀')
+
+    def test_find_product_sheet_when_configured_name_is_wrong(self):
+        store=SheetStore.__new__(SheetStore)
+        store.sheet_titles=Mock(return_value=['Sheet1', '실행설정'])
+        rows={
+            'Sheet1': [['제품 ID','제품명','가격(원)','브랜드명','용량','전성분','공식 상품 상세'],
+                       ['1','토너','15,300','브랜드','500','정제수',self.product['url']]],
+            '실행설정': [['항목','값']],
+        }
+        store.values=Mock(side_effect=lambda title: rows[title])
+        product=store.products('제품 데이터')[0]
+        self.assertEqual(product['id'], '1')
+        self.assertEqual(store.values.call_args_list[0].args, ('Sheet1',))
 
 
 class MonitorOrderingTests(unittest.TestCase):

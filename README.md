@@ -16,7 +16,7 @@
 
 1. 이 폴더 내용을 `.github/workflows/monitor.yml`까지 포함해 **비공개 GitHub 저장소의 기본 브랜치** 루트에 올립니다. 예약 실행과 수동 실행 메뉴를 사용하려면 기본 브랜치에 워크플로가 있어야 합니다.
 2. 구글 클라우드 프로젝트에서 **Google Sheets API**를 활성화하고 서비스 계정을 만든 뒤 JSON 키를 발급합니다. 대상 구글 시트를 서비스 계정 이메일과 **편집자**로 공유합니다.
-3. 시트의 제품 탭에 `제품 ID`, `제품명`, `가격(원)`, `브랜드명`, `용량`, `전성분`, `공식 상품 상세` 헤더가 있어야 합니다. `공식 상품 상세`는 **Q열 안쪽**에 위치해야 합니다. 기본 탭 이름은 `제품 데이터`이며, 다르면 GitHub 변수 `PRODUCT_SHEET_NAME`을 설정합니다. 앞서 받은 XLSX의 `제품 데이터` 탭을 가져오면 A~P열 구조입니다.
+3. 시트의 제품 탭에 `제품 ID`, `제품명`, `가격(원)`, `브랜드명`, `용량`, `전성분`, `공식 상품 상세` 헤더가 있어야 합니다. `공식 상품 상세`는 **Q열 안쪽**에 위치해야 합니다. 기본 탭 이름은 `제품 데이터`이며, 이름이 다르면 필수 헤더를 기준으로 제품 탭을 자동으로 찾습니다. 필요하면 GitHub 변수 `PRODUCT_SHEET_NAME`으로 탭을 지정할 수 있습니다. 앞서 받은 XLSX의 `제품 데이터` 탭을 가져오면 A~P열 구조입니다.
 4. Slack 앱에 **Incoming Webhook**을 켜고 알림을 받을 채널의 웹훅 URL을 만듭니다.
 5. GitHub 저장소 → **Settings → Secrets and variables → Actions**에 아래 값을 등록합니다.
 
@@ -25,7 +25,7 @@
    | Secret | `GOOGLE_SERVICE_ACCOUNT_JSON` | 서비스 계정 JSON **전체 내용** |
    | Secret | `GOOGLE_SPREADSHEET_ID` | 시트 URL `/d/`와 `/edit` 사이의 ID |
    | Secret | `SLACK_WEBHOOK_URL` | Slack 웹훅 URL |
-   | Variable (선택) | `PRODUCT_SHEET_NAME` | 제품 탭 이름, 기본 `제품 데이터` |
+   | Variable (선택) | `PRODUCT_SHEET_NAME` | 제품 탭 이름. 기본 `제품 데이터`, 불일치 시 자동 탐색 |
 
 6. **Actions → VION product monitor → Run workflow**에서 먼저 `probe=true`로 실행합니다. 완료 후 `vion-site-probe` 파일을 내려받아 `수집검증.csv`의 56개 행과 `evidence` 근거 파일을 확인합니다. `미수집`이 있는 사이트는 `sites.yaml`의 브랜드·사이트별 선택자를 보완하세요.
 7. 검증 후 `probe=false`, `force=true`로 처음 실행합니다. 첫 실행부터 현재 시트 값과 공식 페이지 값이 다르면 변경 알림을 보냅니다. `수집상태`, `실행설정`, `변경이력` 탭은 자동으로 생성됩니다.

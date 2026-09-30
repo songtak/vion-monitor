@@ -47,7 +47,7 @@ flowchart LR
 
 ## 3. Google Sheets 구조
 
-기본 제품 탭 이름은 `제품 데이터`이다. 다른 이름을 사용할 경우 GitHub Actions 변수 `PRODUCT_SHEET_NAME`에 실제 탭 이름을 등록한다.
+기본 제품 탭 이름은 `제품 데이터`이다. 이름이 다르면 필수 헤더를 기준으로 제품 탭을 자동 탐색하며, 필요하면 GitHub Actions 변수 `PRODUCT_SHEET_NAME`에 실제 탭 이름을 등록한다.
 
 제품 탭에는 다음 열이 필요하다.
 

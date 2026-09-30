@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from datetime import datetime, timezone
 from urllib.parse import quote
@@ -8,6 +9,7 @@ from google.oauth2.service_account import Credentials
 
 BASE = 'https://sheets.googleapis.com/v4/spreadsheets'
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
+LOG = logging.getLogger(__name__)
 
 
 class SheetStore:
@@ -30,6 +32,10 @@ class SheetStore:
         name = quote(f"'{tab}'!A:Q", safe='')
         return self.request('GET', f'/values/{name}').get('values', [])
 
+    def sheet_titles(self):
+        data = self.request('GET', '', params={'fields': 'sheets.properties.title'})
+        return [sheet['properties']['title'] for sheet in data.get('sheets', [])]
+
     def ensure_tabs(self, names):
         existing = {s['properties']['title'] for s in self.request('GET', '').get('sheets', [])}
         requests = [{'addSheet': {'properties': {'title': name}}} for name in names if name not in existing]
@@ -47,12 +53,10 @@ class SheetStore:
         self.request('PUT', f'/values/{name}', params={'valueInputOption': 'RAW'},
                      json={'values': [values]})
 
-    def products(self, name):
-        rows = self.values(name)
-        if not rows: raise RuntimeError(f'{name} 시트가 비어 있음')
+    def _products_from_rows(self, rows):
         # Header can be below a title row.
         index = next((n for n,r in enumerate(rows) if '제품 ID' in r and '공식 상품 상세' in r), None)
-        if index is None: raise RuntimeError('제품 ID / 공식 상품 상세 헤더를 찾지 못함')
+        if index is None: return None
         headers = [v.strip() for v in rows[index]]
         required = ('제품 ID', '제품명', '브랜드명', '가격(원)', '용량', '전성분', '공식 상품 상세')
         missing = [key for key in required if key not in headers]
@@ -70,6 +74,21 @@ class SheetStore:
         ids = [x['id'] for x in result]
         if len(ids) != len(set(ids)): raise RuntimeError('제품 ID 중복')
         return result
+
+    def products(self, name):
+        titles = self.sheet_titles()
+        candidates = ([name] if name in titles else []) + [title for title in titles if title != name]
+        for title in candidates:
+            products = self._products_from_rows(self.values(title))
+            if products is not None:
+                if title != name:
+                    LOG.warning('제품 탭 %r을 찾을 수 없어 %r 탭을 자동 선택함', name, title)
+                return products
+        available = ', '.join(titles) or '(없음)'
+        raise RuntimeError(
+            '제품 ID / 공식 상품 상세 헤더가 있는 탭을 찾지 못함. '
+            f'요청한 탭: {name}; 사용 가능한 탭: {available}'
+        )
 
     def previous(self):
         rows = self.values('수집상태')
