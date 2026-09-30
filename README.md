@@ -14,7 +14,7 @@
 
 ## 시작하기
 
-1. 이 폴더 내용을 `.github/workflows/monitor.yml`까지 포함해 **비공개 GitHub 저장소의 기본 브랜치** 루트에 올립니다. 예약 실행과 수동 실행 메뉴를 사용하려면 기본 브랜치에 워크플로가 있어야 합니다.
+1. 이 폴더 내용을 `.github/workflows/`까지 포함해 GitHub 저장소의 기본 브랜치 루트에 올립니다. 예약 실행과 수동 실행 메뉴를 사용하려면 기본 브랜치에 워크플로가 있어야 합니다.
 2. 구글 클라우드 프로젝트에서 **Google Sheets API**를 활성화하고 서비스 계정을 만든 뒤 JSON 키를 발급합니다. 대상 구글 시트를 서비스 계정 이메일과 **편집자**로 공유합니다.
 3. 시트의 제품 탭에 `제품 ID`, `제품명`, `가격(원)`, `브랜드명`, `용량`, `전성분`, `공식 상품 상세` 헤더가 있어야 합니다. `공식 상품 상세`는 **Q열 안쪽**에 위치해야 합니다. 기본 탭 이름은 `제품 데이터`이며, 이름이 다르면 필수 헤더를 기준으로 제품 탭을 자동으로 찾습니다. 필요하면 GitHub 변수 `PRODUCT_SHEET_NAME`으로 탭을 지정할 수 있습니다. 앞서 받은 XLSX의 `제품 데이터` 탭을 가져오면 A~P열 구조입니다.
    제품별 미수집·검수 항목은 Actions 로그에만 남기고 나머지 제품 처리를 계속합니다. Slack에는 실제 변경만 전송하며, 변경이 없으면 `수정 사항 없음`을 한 번 전송합니다. 설정·인증·시트 접근처럼 실행 전체를 막는 오류가 있을 때만 Actions 실행을 실패로 표시합니다.
@@ -73,4 +73,5 @@ python -m vion_monitor.probe
 | `vion_monitor/sheets.py` | 구글 시트 읽기·스냅샷·이력 |
 | `vion_monitor/__main__.py` | 예약 실행·비교·슬랙 알림 |
 | `vion_monitor/probe.py` | 56개 URL 항목별 검증 보고서 |
-| `.github/workflows/monitor.yml` | 정기/수동 GitHub Actions 실행 |
+| `.github/workflows/monitor.yml` | 수동 검증용 GitHub Actions 실행 |
+| `.github/workflows/scheduled-monitor.yml` | 예약 전용 GitHub Actions 실행 |

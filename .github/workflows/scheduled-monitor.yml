@@ -1,21 +1,14 @@
-name: VION product monitor
+name: VION scheduled product monitor
 
 on:
-  workflow_dispatch:
-    inputs:
-      probe:
-        description: 'Validate products.csv URLs without writing to Sheets or Slack'
-        type: boolean
-        default: true
-      force:
-        description: 'Skip the interval check for a normal run (ignored in probe mode)'
-        type: boolean
-        default: false
+  schedule:
+    # Testing cadence: every ten minutes, offset from GitHub's busiest minute marks.
+    - cron: '3,13,23,33,43,53 * * * *'
 
 permissions:
   contents: read
 
-# Serialize manual and scheduled runs to protect snapshots.
+# Serialize all runs, including manual runs from other branches, to protect snapshots.
 concurrency:
   group: vion-product-monitor
   cancel-in-progress: false
@@ -48,28 +41,13 @@ jobs:
       - name: Install Chromium and system dependencies
         run: python -m playwright install --with-deps chromium
 
-      - name: Probe product URLs
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.probe }}
-        run: python -m vion_monitor.probe
-
-      - name: Upload probe report
-        if: ${{ !cancelled() && github.event_name == 'workflow_dispatch' && inputs.probe }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: vion-site-probe
-          path: local-output/
-          if-no-files-found: warn
-          retention-days: 30
-
       - name: Monitor products
-        if: ${{ github.event_name == 'schedule' || !inputs.probe }}
         env:
           GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
           GOOGLE_SPREADSHEET_ID: ${{ secrets.GOOGLE_SPREADSHEET_ID }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           PRODUCT_SHEET_NAME: ${{ vars.PRODUCT_SHEET_NAME || '제품 데이터' }}
-          # Scheduled test runs bypass the interval check.
-          FORCE_RUN: ${{ (github.event_name == 'schedule' || inputs.force) && 'true' || 'false' }}
+          FORCE_RUN: 'true'
         shell: bash
         run: |
           set +e
