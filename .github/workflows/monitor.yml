@@ -36,7 +36,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: '3.11'
           cache: pip
@@ -73,4 +73,14 @@ jobs:
           PRODUCT_SHEET_NAME: ${{ vars.PRODUCT_SHEET_NAME || '제품 데이터' }}
           # Scheduled test runs bypass the interval check.
           FORCE_RUN: ${{ (github.event_name == 'schedule' || inputs.force) && 'true' || 'false' }}
-        run: python -m vion_monitor
+        shell: bash
+        run: |
+          set +e
+          python -m vion_monitor
+          status=$?
+          set -e
+          if [ "$status" -eq 2 ]; then
+            echo "::warning::일부 제품 수집에 실패했습니다. 상세 내용은 Slack과 실행 로그를 확인하세요."
+            exit 0
+          fi
+          exit "$status"
