@@ -3,7 +3,7 @@ name: VION product monitor
 on:
   schedule:
     # Testing cadence: every ten minutes, offset from GitHub's busiest minute marks.
-    - cron: '3-59/10 * * * *'
+    - cron: '3,13,23,33,43,53 * * * *'
   workflow_dispatch:
     inputs:
       probe:
