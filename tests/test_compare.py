@@ -111,7 +111,7 @@ class CompareTests(unittest.TestCase):
 
 
 class MonitorOrderingTests(unittest.TestCase):
-    def run_monitor(self, fail_history=False, fail_slack=False):
+    def run_monitor(self, fail_history=False, fail_slack=False, warnings=None):
         import vion_monitor.__main__ as monitor
         product={'id':'1','name':'토너','brand':'브랜드','price':'10000','volume':'100',
                  'ingredients':'정제수, 글리세린','url':'https://example.com/product/1'}
@@ -131,25 +131,33 @@ class MonitorOrderingTests(unittest.TestCase):
         with patch.object(monitor,'SheetStore',return_value=store), \
              patch.object(monitor,'sync_playwright'), patch.object(monitor,'fetch',return_value='html'), \
              patch.object(monitor,'site_for',return_value=('test',{'engine':'custom'})), \
-             patch.object(monitor,'extract',return_value=(current,[])), \
+             patch.object(monitor,'extract',return_value=(current,warnings or [])), \
              patch.object(monitor,'send_slack',side_effect=slack), patch.object(monitor.time,'sleep'), \
              patch.dict(monitor.os.environ,{'SLACK_WEBHOOK_URL':'fake'}):
-            try: monitor.main()
+            try: result=monitor.main()
             except RuntimeError:
                 if not fail_slack: raise
-        return events
+                result=None
+        return events, result
 
     def test_history_precedes_slack_and_snapshot(self):
-        self.assertEqual(self.run_monitor(), ['history','slack','snapshot'])
+        events, result = self.run_monitor()
+        self.assertEqual(events, ['history','slack','snapshot'])
+        self.assertEqual(result, 0)
 
     def test_history_failure_preserves_retry(self):
-        events=self.run_monitor(fail_history=True)
+        events, _=self.run_monitor(fail_history=True)
         self.assertNotIn('snapshot',events)
 
     def test_slack_failure_preserves_retry(self):
-        events=self.run_monitor(fail_slack=True)
+        events, _=self.run_monitor(fail_slack=True)
         self.assertEqual(events[0],'history')
         self.assertNotIn('snapshot',events)
+
+    def test_review_note_does_not_fail_completed_run(self):
+        events, result = self.run_monitor(warnings=['상세 이미지 확인 필요'])
+        self.assertEqual(result, 0)
+        self.assertEqual(events.count('slack'), 2)
 
 
 if __name__ == '__main__': unittest.main()

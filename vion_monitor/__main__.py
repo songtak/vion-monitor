@@ -80,6 +80,7 @@ def main():
     webhook = os.environ.get('SLACK_WEBHOOK_URL')
     if not webhook: raise RuntimeError('SLACK_WEBHOOK_URL 설정 필요')
     errors = []
+    review_notes = []
     change_count = 0
     covered = 0
     with sync_playwright() as pw:
@@ -99,7 +100,7 @@ def main():
                     before, changes, state, comparison_warnings = compare_product(p, current, saved)
                     warnings += comparison_warnings
                     if warnings:
-                        errors.append(f"{p['id']} {p['name']} ({key}): {', '.join(warnings)}")
+                        review_notes.append(f"{p['id']} {p['name']} ({key}): {', '.join(warnings)}")
                     if changes:
                         stamp = datetime.now(timezone.utc).isoformat()
                         # Durable history before notification and deduplication state.
@@ -118,10 +119,15 @@ def main():
                 time.sleep(1.2)  # Polite rate limit per page.
         finally:
             browser.close()
-    for error in errors: LOG.warning('%s', error)
-    if errors: send_slack(webhook,['⚠️ VION 수집 검수 필요\n'+'\n'.join(errors[:25])]+(['추가 오류 '+str(len(errors)-25)+'건: 실행 로그 확인'] if len(errors)>25 else []))
+    for note in review_notes: LOG.warning('%s', note)
+    for error in errors: LOG.error('%s', error)
+    notices = review_notes + errors
+    if notices:
+        send_slack(webhook, ['⚠️ VION 수집 검수 필요\n' + '\n'.join(notices[:25])] +
+                   (['추가 항목 ' + str(len(notices)-25) + '건: 실행 로그 확인'] if len(notices)>25 else []))
     store.mark_run()
-    LOG.info('Done: %s products, %s with URL, %s changes, %s warnings',len(products),covered,change_count,len(errors))
+    LOG.info('Done: %s products, %s with URL, %s changes, %s review notes, %s errors',
+             len(products), covered, change_count, len(review_notes), len(errors))
     return 0 if not errors else 2
 
 
