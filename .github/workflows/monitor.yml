@@ -2,8 +2,8 @@ name: VION product monitor
 
 on:
   schedule:
-    # Testing cadence: every hour at minute 17.
-    - cron: '17 * * * *'
+    # Testing cadence: every five minutes.
+    - cron: '*/5 * * * *'
   workflow_dispatch:
     inputs:
       probe:
@@ -11,7 +11,7 @@ on:
         type: boolean
         default: true
       force:
-        description: 'Skip the 1-hour interval for a normal run (ignored in probe mode)'
+        description: 'Skip the interval check for a normal run (ignored in probe mode)'
         type: boolean
         default: false
 
@@ -29,6 +29,8 @@ jobs:
     timeout-minutes: 120
     env:
       PYTHONUNBUFFERED: '1'
+      TEST_PRODUCT_LIMIT: '30'
+      TEST_DISTINCT_BRANDS: 'true'
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
@@ -58,7 +60,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: vion-site-probe
-          path: local-output/수집검증.csv
+          path: local-output/
           if-no-files-found: warn
           retention-days: 30
 
@@ -69,6 +71,6 @@ jobs:
           GOOGLE_SPREADSHEET_ID: ${{ secrets.GOOGLE_SPREADSHEET_ID }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           PRODUCT_SHEET_NAME: ${{ vars.PRODUCT_SHEET_NAME || '제품 데이터' }}
-          # Scheduled runs bypass the interval: the previous run may have finished less than an hour ago.
+          # Scheduled test runs bypass the interval check.
           FORCE_RUN: ${{ (github.event_name == 'schedule' || inputs.force) && 'true' || 'false' }}
         run: python -m vion_monitor

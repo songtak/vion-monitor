@@ -54,14 +54,18 @@ class SheetStore:
         index = next((n for n,r in enumerate(rows) if '제품 ID' in r and '공식 상품 상세' in r), None)
         if index is None: raise RuntimeError('제품 ID / 공식 상품 상세 헤더를 찾지 못함')
         headers = [v.strip() for v in rows[index]]
+        required = ('제품 ID', '제품명', '브랜드명', '가격(원)', '용량', '전성분', '공식 상품 상세')
+        missing = [key for key in required if key not in headers]
+        if missing: raise RuntimeError('필수 헤더 누락: ' + ', '.join(missing))
         def get(row, key):
             j = headers.index(key)
             return row[j].strip() if j < len(row) else ''
         result = []
         for row in rows[index + 1:]:
-            if not row or not row[0].strip(): continue
+            if not row or not get(row, '제품 ID'): continue
             result.append({'id': get(row,'제품 ID'), 'name': get(row,'제품명'),
                            'brand': get(row,'브랜드명'), 'volume': get(row,'용량'),
+                           'price': get(row,'가격(원)'), 'ingredients': get(row,'전성분'),
                            'url': get(row,'공식 상품 상세')})
         ids = [x['id'] for x in result]
         if len(ids) != len(set(ids)): raise RuntimeError('제품 ID 중복')
@@ -81,9 +85,12 @@ class SheetStore:
         row = [product_id, json.dumps(data, ensure_ascii=False), stamp]
         if product_id in previous:
             self.replace_row('수집상태', previous[product_id][0], row)
+            previous[product_id] = (previous[product_id][0], data)
         else:
-            self.append('수집상태', [row])
-            previous[product_id] = (len(previous) + 2, data)
+            # Account for blank rows in a sheet edited by a person.
+            number = len(self.values('수집상태')) + 1
+            self.replace_row('수집상태', number, row)
+            previous[product_id] = (number, data)
 
     def last_run(self):
         for row in self.values('실행설정')[1:]:

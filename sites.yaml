@@ -7,13 +7,13 @@ sites:
     paths: [/kr/ko/product/detail]
     engine: custom
     name: ['h1', '[class*="productName"]', '[class*="goodsName"]']
-    price: ['[class*="salePrice"]', '[class*="finalPrice"]']
   torriden:
     domains: [torriden.com]
     paths: [/goods/goods_view.php]
     engine: godomall
     name: ['.item_detail_tit h3', '.item_detail_tit', 'h1']
-    price: ['.item_price .price', '.item_price']
+    regular_price: ['.item_detail_tit .prd_money_box del']
+    ingredient_labels: ['주요성분']
   roundlab:
     domains: [roundlab.co.kr]
     paths: [/product/]
@@ -26,10 +26,13 @@ sites:
     domains: [beplain.co.kr]
     paths: [/shop/, /index.html]
     engine: makeshop
+    regular_price: ['.priceArea .consumer']
+    base_price: ['.priceArea #pricevalue']
   abib:
     domains: [abib.com]
     paths: [/product/]
     engine: cafe24
+    ingredients: ['.acco-inner .ingr2']
   naosmall:
     domains: [naosmall.kr]
     paths: [/product/]
@@ -46,10 +49,12 @@ sites:
     domains: [wellage.co.kr]
     paths: [/product/]
     engine: cafe24
+    ingredients: ['.prod_ingredient']
   sidmool:
     domains: [sidmool.com]
     paths: [/shop/shopdetail.html]
     engine: makeshop
+    base_price: ['.s-price']
   ybk:
     domains: [ybk-cosmetics.com]
     paths: [/product/]
@@ -58,6 +63,8 @@ sites:
     domains: [tonymoly.com]
     paths: [/products/]
     engine: custom
+    name: ['.prod-name']
+    regular_price: ['.selling-price-wrap .price-before']
   snature:
     domains: [snature.kr]
     paths: [/product/]
@@ -82,6 +89,9 @@ sites:
     domains: [laneige.com]
     paths: [/product/]
     engine: custom
+    name: ['.pdp__name-main']
+    ingredients: ['.pdp-ingredient__content-box']
+    render: true
   numbuzin:
     domains: [numbuzin.com]
     paths: [/product/]
@@ -106,6 +116,7 @@ sites:
     domains: [cosrx.co.kr]
     paths: [/shop/shopdetail.html]
     engine: makeshop
+    regular_price: ['.consumerPrice del', '.price strike']
   reveam:
     domains: [reveam.co.kr]
     paths: [/product/]
@@ -114,6 +125,8 @@ sites:
     domains: [nomadiaskin.kr]
     paths: [/product/]
     engine: cafe24
+    render: true
+    ingredients: ['[data-nmd-notice-ingredients-body]']
   mediheal:
     domains: [medihealshop.com]
     paths: [/product/]
@@ -122,6 +135,7 @@ sites:
     domains: [innisfree.com]
     paths: [/kr/ko/dp/product/]
     engine: custom
+    render: true
   fully:
     domains: [full-y.co.kr]
     paths: [/product/]
