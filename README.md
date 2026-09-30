@@ -30,7 +30,7 @@
 
 6. **Actions → VION product monitor → Run workflow**에서 먼저 `probe=true`로 실행합니다. 완료 후 `vion-site-probe` 파일을 내려받아 `수집검증.csv`의 56개 행과 `evidence` 근거 파일을 확인합니다. `미수집`이 있는 사이트는 `sites.yaml`의 브랜드·사이트별 선택자를 보완하세요.
 7. 검증 후 `probe=false`, `force=true`로 처음 실행합니다. 첫 실행부터 현재 시트 값과 공식 페이지 값이 다르면 변경 알림을 보냅니다. `수집상태`, `실행설정`, `변경이력` 탭은 자동으로 생성됩니다.
-8. 현재 테스트 단계에서는 GitHub Actions가 **5분마다** 실행됩니다. 공식 URL이 있는 제품 중 브랜드가 겹치지 않는 30개를 우선 선택합니다. 예약 실행은 시간 간격 검사를 우회하며 GitHub 사정에 따라 지연될 수 있습니다. 테스트 종료 후에는 `TEST_PRODUCT_LIMIT`과 `TEST_DISTINCT_BRANDS` 설정을 제거하고 원래 계획인 3일 간격으로 되돌릴 예정입니다.
+8. 현재 테스트 단계에서는 GitHub Actions가 매시 **02, 07, 12, …, 57분**에 5분 간격으로 실행됩니다. 공식 URL이 있는 제품 중 브랜드가 겹치지 않는 30개를 우선 선택합니다. 예약 실행은 시간 간격 검사를 우회하며 GitHub 사정에 따라 지연될 수 있습니다. 테스트 종료 후에는 `TEST_PRODUCT_LIMIT`과 `TEST_DISTINCT_BRANDS` 설정을 제거하고 원래 계획인 3일 간격으로 되돌릴 예정입니다.
 
 수동 실행의 기본값은 `probe=true`, `force=false`입니다. `probe`는 시트 대신 저장소의 `products.csv`를 검사하며 Secrets 없이도 실행할 수 있습니다. `probe=true`이면 `force`는 무시됩니다. 보고서는 실행 화면의 **Artifacts → vion-site-probe**에서 내려받으며 30일간 보관됩니다. 보고서의 `추출`은 값이 발견됐다는 뜻으로, 실제 제품 정보와 일치하는지는 별도 검수가 필요합니다.
 
