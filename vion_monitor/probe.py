@@ -74,7 +74,9 @@ def main():
                 key, cfg = site_for(product['url'], sites)
                 try:
                     if not cfg: raise RuntimeError('지원 규칙 없음')
-                    html = fetch(browser, product['url'], render=cfg.get('render', False))
+                    html = fetch(browser, product['url'], render=cfg.get('render', False),
+                                 click=cfg.get('click'), wait_for=cfg.get('wait_for'),
+                                 scroll=cfg.get('scroll', False))
                     # Numeric filenames are independent of user-supplied product IDs.
                     stem = f'{number:03d}'
                     (evidence_dir / f'{stem}.html').write_text(html, encoding='utf8')

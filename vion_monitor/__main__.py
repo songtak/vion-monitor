@@ -30,7 +30,7 @@ def send_slack(webhook, messages):
         if res.text.strip() != 'ok': raise RuntimeError(f'Slack 응답 오류: {res.status_code}')
 
 
-def fetch(browser, url, render=False):
+def fetch(browser, url, render=False, click=None, wait_for=None, scroll=False):
     candidate = None
     try:
         res = requests.get(url, timeout=15, headers={'User-Agent':'Mozilla/5.0 (compatible; VIONProductMonitor/1.0)'})
@@ -51,6 +51,20 @@ def fetch(browser, url, render=False):
         page.wait_for_timeout(2500 if render else 900)
         if not res or res.status >= 400:
             raise RuntimeError(f'HTTP {res.status if res else "no response"}')
+        for selector in click or []:
+            try:
+                page.locator(selector).first.click(timeout=3000)
+                page.wait_for_timeout(500)
+            except Exception:
+                LOG.debug('동적 영역 클릭 실패: %s %s', url, selector)
+        for selector in wait_for or []:
+            try:
+                page.locator(selector).first.wait_for(state='attached', timeout=5000)
+            except Exception:
+                LOG.debug('동적 영역 대기 실패: %s %s', url, selector)
+        if scroll:
+            page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+            page.wait_for_timeout(1200)
         html = page.content()
         if len(html) < 1000 or 'captcha' in page.title().lower():
             raise RuntimeError('페이지 접근 제한 또는 빈 응답')
@@ -94,13 +108,21 @@ def main():
                     continue
                 covered += 1
                 try:
-                    html = fetch(browser, p['url'], render=cfg.get('render', False))
+                    html = fetch(browser, p['url'], render=cfg.get('render', False),
+                                 click=cfg.get('click'), wait_for=cfg.get('wait_for'),
+                                 scroll=cfg.get('scroll', False))
                     current, warnings = extract(html,p['url'],cfg,p['name'],p['volume'])
                     saved = previous.get(p['id'], (None, {}))[1]
                     before, changes, state, comparison_warnings = compare_product(p, current, saved)
                     warnings += comparison_warnings
                     if warnings:
-                        review_notes.append(f"{p['id']} {p['name']} ({key}): {', '.join(warnings)}")
+                        note = f"{p['id']} {p['name']} ({key}): {', '.join(warnings)}"
+                        image_urls = current.get('_evidence', {}).get('image_urls', [])
+                        if image_urls:
+                            note += '\n상세 이미지 후보:\n' + '\n'.join(image_urls[:3])
+                            if len(image_urls) > 3:
+                                note += f"\n외 {len(image_urls) - 3}개"
+                        review_notes.append(note)
                     if changes:
                         stamp = datetime.now(timezone.utc).isoformat()
                         # Durable history before notification and deduplication state.

@@ -126,11 +126,19 @@ def label_value(soup, labels):
 def detail_images(html, url):
     """Evidence links, not a claim that an image contains an ingredient list."""
     soup = BeautifulSoup(html, 'html.parser')
-    blocks = soup.select('#prdDetail, .cont_detail, #detail, #detailView, #goodsDescription, .goods_description, .detail_cont, .detail-con')
+    blocks = soup.select(
+        '#prdDetail, .cont_detail, #detail, #detailView, #goodsDescription, '
+        '.goods_description, .detail_cont, .detail-con, [class*="product-detail"], '
+        '[class*="product_detail"], [class*="detail-content"]'
+    )
     result = []
     for block in blocks:
         for img in block.select('img'):
-            src = img.get('data-src') or img.get('ec-data-src') or img.get('src')
+            src = (img.get('data-src') or img.get('data-original') or img.get('data-lazy')
+                   or img.get('ec-data-src') or img.get('src'))
+            if not src:
+                srcset = img.get('data-srcset') or img.get('srcset') or ''
+                src = srcset.split(',')[-1].strip().split(' ')[0] if srcset else ''
             if not src or src.startswith('data:'): continue
             link = urljoin(url, src)
             if any(x in link for x in ('echosting', '/icon', '/btn_', '/medium/', '/small/')): continue
@@ -214,8 +222,13 @@ def extract(html, url, cfg, expected_name='', expected_volume=''):
     elif not size.endswith('ml'):
         warnings.append(f'용량 단위 확인 필요: 시트는 ml / 페이지는 {size}; 자동 환산하지 않음')
         size = None
+    image_urls = detail_images(html, url) if not parsed_ing else []
     if not parsed_ing:
-        warnings.append('전성분 텍스트 미수집: 상세 이미지/동적 영역 검수 필요 (이미지 여부 미확정)')
+        if image_urls:
+            sources['ingredients'] = f'상세 이미지 후보 {len(image_urls)}개'
+            warnings.append(f'전성분 텍스트 미수집: 상세 이미지 {len(image_urls)}개 확인, 이미지 검수 필요')
+        else:
+            warnings.append('전성분 텍스트 미수집: 렌더링 후에도 상세 이미지와 전성분 영역을 확인하지 못함')
     result = {'name': name or None, 'price': price, 'volume': size, 'ingredients': parsed_ing}
     # Preserve all observed values in evidence even when identity validation fails.
     observed = dict(result)
@@ -226,5 +239,5 @@ def extract(html, url, cfg, expected_name='', expected_volume=''):
         result = {field: None for field in FIELDS}
     result['_evidence'] = {'sources': sources, 'observed': observed,
                            'raw_volume': raw_volume, 'raw_ingredients': raw_ing,
-                           'image_urls': detail_images(html, url) if not parsed_ing else []}
+                           'image_urls': image_urls}
     return result, warnings

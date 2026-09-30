@@ -32,6 +32,23 @@ class ExtractTests(unittest.TestCase):
         self.assertTrue(all(value[f] is None for f in FIELDS))
         self.assertTrue(any('제품명 불일치' in w for w in warnings))
 
+    def test_missing_ingredients_reports_detail_image_candidates(self):
+        html = '''<html><h1>토너 300ml</h1><div id="prdDetail">
+        <img data-original="/images/detail-info.jpg"></div></html>'''
+        value, warnings = extract(html, 'https://example.com/product/1', {'engine':'custom'}, '토너', '300')
+        self.assertEqual(value['_evidence']['image_urls'], ['https://example.com/images/detail-info.jpg'])
+        self.assertEqual(value['_evidence']['sources']['ingredients'], '상세 이미지 후보 1개')
+        self.assertTrue(any('상세 이미지 1개 확인' in warning for warning in warnings))
+
+    def test_site_specific_ingredient_selector(self):
+        html = '''<html><h1>토너 500ml</h1><div class="ingredients_cont">
+        <div class="admin_msg">정제수, 글리세린, 판테놀</div></div></html>'''
+        value, warnings = extract(html, 'https://example.com/product/1',
+                                  {'engine':'custom','ingredients':['.ingredients_cont .admin_msg']},
+                                  '토너', '500')
+        self.assertEqual(value['ingredients'], ['정제수', '글리세린', '판테놀'])
+        self.assertFalse(any('전성분 텍스트 미수집' in warning for warning in warnings))
+
     def test_config_hosts_are_unique_and_32(self):
         with open('sites.yaml',encoding='utf8') as f: sites = yaml.safe_load(f)['sites']
         self.assertEqual(len(sites),32)
